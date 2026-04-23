@@ -1,8 +1,9 @@
 // --- Constantes y Estado ---
-const STATES = { SETUP: 'SETUP', PREP: 'PREP', WORK: 'WORK', REST: 'REST', FINISHED: 'FINISHED' };
+const STATES = { SETUP: 'SETUP', PREP: 'PREP', WORK: 'WORK', REST: 'REST', FINISHED: 'FINISHED', HISTORY: 'HISTORY' };
 let currentState = STATES.SETUP;
 let timer = null;
 let timeLeft = 0;
+let totalTimeInState = 0;
 let currentRound = 1;
 let totalRounds = 0;
 let workTime = 0;
@@ -13,17 +14,7 @@ let caloriesBurned = 0;
 let isPaused = false;
 let wakeLock = null;
 
-// MET values
-const MET_WORK = 8.0;
-const MET_REST = 2.0;
-
 // --- Elementos del DOM ---
-const screens = {
-    setup: document.getElementById('setup-screen'),
-    timer: document.getElementById('timer-screen'),
-    finish: document.getElementById('finish-screen')
-};
-
 const displays = {
     countdown: document.getElementById('countdown-display'),
     status: document.getElementById('status-label'),
@@ -33,29 +24,43 @@ const displays = {
     muscleTag: document.getElementById('muscle-tag'),
     finalMuscle: document.getElementById('final-muscle'),
     finalCalories: document.getElementById('final-calories'),
-    finalTime: document.getElementById('final-time')
+    finalTime: document.getElementById('final-time'),
+    progressBar: document.getElementById('progress-bar'),
+    historyList: document.getElementById('history-list')
+};
+
+const screens = {
+    setup: document.getElementById('setup-screen'),
+    timer: document.getElementById('timer-screen'),
+    finish: document.getElementById('finish-screen'),
+    history: document.getElementById('history-screen'),
+    nav: document.getElementById('main-nav')
 };
 
 // --- Inicialización ---
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     initEventListeners();
-};
+    updateHistoryUI();
+});
 
 function initEventListeners() {
-    document.getElementById('start-btn').onclick = startWorkout;
-    document.getElementById('pause-btn').onclick = togglePause;
-    document.getElementById('stop-btn').onclick = stopWorkout;
-    document.getElementById('reset-btn').onclick = resetToSetup;
+    document.getElementById('start-btn').addEventListener('click', startWorkout);
+    document.getElementById('pause-btn').addEventListener('click', togglePause);
+    document.getElementById('stop-btn').addEventListener('click', stopWorkout);
+    document.getElementById('reset-btn').addEventListener('click', resetToSetup);
+    
+    document.getElementById('nav-setup').addEventListener('click', () => showScreen(STATES.SETUP));
+    document.getElementById('nav-history').addEventListener('click', () => showScreen(STATES.HISTORY));
+    document.getElementById('clear-history').addEventListener('click', clearHistory);
 }
 
 // --- Lógica del Temporizador ---
 function startWorkout() {
-    // Capturar valores
-    workTime = parseInt(document.getElementById('work-time').value);
-    restTime = parseInt(document.getElementById('rest-time').value);
-    totalRounds = parseInt(document.getElementById('rounds').value);
-    userWeight = parseInt(document.getElementById('user-weight').value);
+    workTime = parseInt(document.getElementById('work-time').value) || 40;
+    restTime = parseInt(document.getElementById('rest-time').value) || 20;
+    totalRounds = parseInt(document.getElementById('rounds').value) || 8;
+    userWeight = parseInt(document.getElementById('user-weight').value) || 70;
     muscleGroup = document.getElementById('muscle-group').value;
 
     saveSettings();
@@ -65,14 +70,17 @@ function startWorkout() {
     currentRound = 1;
     caloriesBurned = 0;
     displays.muscleTag.innerText = muscleGroup;
-    switchScreen('timer');
+    showScreen(STATES.TIMER);
     startState(STATES.PREP, 10);
 }
 
 function startState(state, seconds) {
     currentState = state;
     timeLeft = seconds;
+    totalTimeInState = seconds;
     updateUIState();
+    updateDisplay(); // Llamada inmediata
+    announceState(state);
     
     if (timer) clearInterval(timer);
     timer = setInterval(tick, 1000);
@@ -80,25 +88,24 @@ function startState(state, seconds) {
 
 function tick() {
     if (isPaused) return;
-
     timeLeft--;
     
-    // Feedback sensorial
     if (timeLeft <= 3 && timeLeft > 0) {
-        playBeep(440, 0.1); // Pitido corto
+        playBeep(440, 0.1); 
         vibrate(50);
+        if (timeLeft === 3) speak("Tres");
     }
 
-    if (timeLeft <= 0) {
+    if (timeLeft < 0) {
         nextState();
+    } else {
+        updateDisplay();
+        calculateCalories();
     }
-
-    updateDisplay();
-    calculateCalories();
 }
 
 function nextState() {
-    playBeep(880, 0.5); // Pitido largo/cambio
+    playBeep(880, 0.4); 
     vibrate([200, 100, 200]);
 
     if (currentState === STATES.PREP) {
@@ -119,45 +126,136 @@ function finishWorkout() {
     clearInterval(timer);
     currentState = STATES.FINISHED;
     releaseWakeLock();
+    speak("Completado");
     
-    displays.finalMuscle.innerText = muscleGroup;
-    displays.finalCalories.innerText = Math.round(caloriesBurned);
-    displays.finalTime.innerText = formatTime(totalRounds * (workTime + restTime));
-    switchScreen('finish');
+    const finalData = {
+        date: new Date().toLocaleDateString(),
+        muscle: muscleGroup,
+        calories: Math.round(caloriesBurned),
+        time: formatTime(totalRounds * (workTime + restTime))
+    };
+    saveToHistory(finalData);
+    
+    displays.finalMuscle.innerText = finalData.muscle;
+    displays.finalCalories.innerText = finalData.calories;
+    displays.finalTime.innerText = finalData.time;
+    showScreen(STATES.FINISHED);
 }
 
 // --- UI y Feedback ---
 function updateDisplay() {
-    displays.countdown.innerText = timeLeft;
+    displays.countdown.innerText = timeLeft < 0 ? 0 : timeLeft;
     displays.round.innerText = currentRound;
     displays.totalRounds.innerText = totalRounds;
     displays.calories.innerText = Math.round(caloriesBurned);
     
-    // Efecto de pulso en los últimos segundos
-    if (timeLeft <= 3) {
-        displays.countdown.style.transform = 'scale(1.1)';
-        setTimeout(() => displays.countdown.style.transform = 'scale(1)', 100);
-    }
+    // SVG Circle Logic
+    const circumference = 283;
+    const progress = timeLeft / totalTimeInState;
+    const offset = circumference - (progress * circumference);
+    displays.progressBar.style.strokeDashoffset = isNaN(offset) ? 0 : offset;
 }
 
 function updateUIState() {
-    const body = document.body;
-    body.className = ''; // Limpiar clases
-    displays.status.className = '';
+    document.body.className = `bg-${currentState.toLowerCase()}`;
+    screens.timer.className = `screen state-${currentState.toLowerCase()}`;
+    
+    const labels = { PREP: 'PREPARACIÓN', WORK: 'TRABAJO', REST: 'DESCANSO' };
+    displays.status.innerText = labels[currentState] || '';
+}
 
-    if (currentState === STATES.PREP) {
-        displays.status.innerText = "PREPARACIÓN";
-        displays.status.classList.add('state-prep');
-        body.classList.add('bg-prep');
-    } else if (currentState === STATES.WORK) {
-        displays.status.innerText = "TRABAJO";
-        displays.status.classList.add('state-work');
-        body.classList.add('bg-work');
-    } else if (currentState === STATES.REST) {
-        displays.status.innerText = "DESCANSO";
-        displays.status.classList.add('state-rest');
-        body.classList.add('bg-rest');
+function announceState(state) {
+    const texts = { PREP: 'Prepárate', WORK: '¡A trabajar!', REST: 'Descanso' };
+    if (texts[state]) speak(texts[state]);
+}
+
+function speak(text) {
+    if ('speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'es-ES';
+        u.rate = 1.2;
+        speechSynthesis.speak(u);
     }
+}
+
+function showScreen(state) {
+    Object.values(screens).forEach(s => s.classList.add('hidden'));
+    document.querySelectorAll('#main-nav button').forEach(b => b.classList.remove('active'));
+
+    if (state === STATES.SETUP) {
+        screens.setup.classList.remove('hidden');
+        screens.nav.classList.remove('hidden');
+        document.getElementById('nav-setup').classList.add('active');
+    } else if (state === STATES.HISTORY) {
+        screens.history.classList.remove('hidden');
+        screens.nav.classList.remove('hidden');
+        document.getElementById('nav-history').classList.add('active');
+        updateHistoryUI();
+    } else if (state === STATES.TIMER) {
+        screens.timer.classList.remove('hidden');
+    } else if (state === STATES.FINISHED) {
+        screens.finish.classList.remove('hidden');
+    }
+}
+
+// --- Utilidades ---
+let audioCtx = null;
+function initSensory() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playBeep(freq, dur) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+}
+
+function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
+
+async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+        try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+    }
+}
+
+function releaseWakeLock() { if (wakeLock) { wakeLock.release(); wakeLock = null; } }
+
+function calculateCalories() {
+    const METS = { WORK: 8.0, REST: 2.0, PREP: 1.0 };
+    const met = METS[currentState] || 1.0;
+    caloriesBurned += (met * 3.5 * userWeight) / (200 * 60);
+}
+
+function formatTime(s) {
+    const m = Math.floor(s / 60);
+    return `${m.toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+}
+
+function saveToHistory(data) {
+    const h = JSON.parse(localStorage.getItem('gymFlowHistory') || '[]');
+    h.unshift(data);
+    localStorage.setItem('gymFlowHistory', JSON.stringify(h.slice(0, 30)));
+}
+
+function updateHistoryUI() {
+    const h = JSON.parse(localStorage.getItem('gymFlowHistory') || '[]');
+    displays.historyList.innerHTML = h.map(i => `
+        <div class="history-item">
+            <div><div class="history-date">${i.date}</div><div class="history-muscle">${i.muscle}</div></div>
+            <div class="history-cal">${i.calories} kcal</div>
+        </div>
+    `).join('') || '<p style="text-align:center; padding:40px; color:#555;">No hay sesiones aún</p>';
+}
+
+function clearHistory() {
+    if (confirm('¿Borrar historial?')) { localStorage.removeItem('gymFlowHistory'); updateHistoryUI(); }
 }
 
 function togglePause() {
@@ -166,107 +264,24 @@ function togglePause() {
 }
 
 function stopWorkout() {
-    if (confirm('¿Deseas detener el entrenamiento?')) {
-        clearInterval(timer);
-        releaseWakeLock();
-        resetToSetup();
-    }
+    if (confirm('¿Detener?')) { clearInterval(timer); releaseWakeLock(); showScreen(STATES.SETUP); }
 }
 
-function resetToSetup() {
-    switchScreen('setup');
-    document.body.className = '';
-}
-
-function switchScreen(screenName) {
-    Object.values(screens).forEach(s => s.classList.add('hidden'));
-    screens[screenName].classList.remove('hidden');
-}
-
-// --- Utilidades Sensoriales ---
-let audioCtx = null;
-function initSensory() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-}
-
-function playBeep(frequency, duration) {
-    if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-    
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    osc.start();
-    osc.stop(audioCtx.currentTime + duration);
-}
-
-function vibrate(pattern) {
-    if (navigator.vibrate) {
-        navigator.vibrate(pattern);
-    }
-}
-
-async function requestWakeLock() {
-    if ('wakeLock' in navigator) {
-        try {
-            wakeLock = await navigator.wakeLock.request('screen');
-        } catch (err) {
-            console.error(`${err.name}, ${err.message}`);
-        }
-    }
-}
-
-function releaseWakeLock() {
-    if (wakeLock) {
-        wakeLock.release();
-        wakeLock = null;
-    }
-}
-
-// --- Datos ---
-function calculateCalories() {
-    const met = currentState === STATES.WORK ? MET_WORK : (currentState === STATES.REST ? MET_REST : 1.0);
-    // Fórmula: (MET * 3.5 * peso / 200) por minuto. Aquí dividimos por 60 para obtener por segundo.
-    const calPerSecond = (met * 3.5 * userWeight) / (200 * 60);
-    caloriesBurned += calPerSecond;
-}
-
-function formatTime(totalSeconds) {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
+function resetToSetup() { showScreen(STATES.SETUP); }
 
 function saveSettings() {
-    const settings = {
-        work: workTime,
-        rest: restTime,
-        rounds: totalRounds,
-        weight: userWeight,
-        muscle: muscleGroup
-    };
-    localStorage.setItem('gymTimerSettings', JSON.stringify(settings));
+    localStorage.setItem('gymTimerSettings', JSON.stringify({
+        work: workTime, rest: restTime, rounds: totalRounds, weight: userWeight, muscle: muscleGroup
+    }));
 }
 
 function loadSettings() {
-    const saved = localStorage.getItem('gymTimerSettings');
-    if (saved) {
-        const settings = JSON.parse(saved);
-        document.getElementById('work-time').value = settings.work;
-        document.getElementById('rest-time').value = settings.rest;
-        document.getElementById('rounds').value = settings.rounds;
-        document.getElementById('user-weight').value = settings.weight;
-        if (settings.muscle) {
-            document.getElementById('muscle-group').value = settings.muscle;
-        }
+    const s = JSON.parse(localStorage.getItem('gymTimerSettings'));
+    if (s) {
+        document.getElementById('work-time').value = s.work;
+        document.getElementById('rest-time').value = s.rest;
+        document.getElementById('rounds').value = s.rounds;
+        document.getElementById('user-weight').value = s.weight;
+        document.getElementById('muscle-group').value = s.muscle;
     }
 }

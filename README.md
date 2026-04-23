@@ -15,7 +15,26 @@
   - Patrones de vibración para avisos de finalización (3s) y cambios de estado.
 - 🔋 **Wake Lock API**: La pantalla nunca se apaga mientras el temporizador está activo.
 - 📉 **Cálculo de Calorías**: Estimación basada en el peso del usuario y la intensidad (MET).
+- 📜 **Historial Pro**: Registro de tus sesiones anteriores directamente en tu dispositivo.
 - 📱 **PWA (Progressive Web App)**: Instalable en el móvil y totalmente funcional sin conexión a internet.
+
+---
+
+## 📲 Cómo instalar en tu móvil (PWA)
+
+GymFlow no necesita descargarse de la App Store o Google Play. Puedes instalarla directamente desde tu navegador:
+
+### 🤖 En Android (Chrome)
+1. Abre el enlace de la aplicación en Chrome.
+2. Toca el icono de los **tres puntos (⋮)** en la esquina superior derecha.
+3. Selecciona **"Instalar aplicación"** o **"Añadir a pantalla de inicio"**.
+4. ¡Listo! Ya aparecerá en tu menú de aplicaciones.
+
+### 🍎 En iOS / iPhone (Safari)
+1. Abre el enlace de la aplicación en **Safari**.
+2. Toca el botón **Compartir (el cuadrado con la flecha hacia arriba ↑)** en la parte inferior.
+3. Desplázate hacia abajo y selecciona **"Añadir a la pantalla de inicio"**.
+4. Pulsa **"Añadir"** en la esquina superior derecha.
 
 ---
 
@@ -55,11 +74,11 @@ Si deseas ejecutar el proyecto localmente para desarrollo o pruebas, puedes hace
 
 Estamos trabajando para hacer de GymFlow la mejor herramienta de entrenamiento:
 
-- [ ] **Historial de Entrenamientos**: Registro local de las sesiones completadas y calorías totales.
+- [x] **Historial de Entrenamientos**: Registro local de las sesiones completadas y calorías totales.
 - [ ] **Gráficos de Progreso**: Visualización semanal/mensual del volumen de entrenamiento.
 - [ ] **Soporte para Rutinas Guardadas**: Crear y nombrar diferentes configuraciones (ej: "Tabata Abs", "CrossFit HIIT").
 - [ ] **Integración con Sensores**: Uso experimental de sensores de movimiento para contar repeticiones automáticamente.
-- [ ] **Voces de Guía**: Opción de activar una voz que anuncie el inicio de las series.
+- [x] **Voces de Guía**: Opción de activar una voz que anuncie el inicio de las series.
 - [ ] **Temas Personalizados**: Selección de colores y estilos adicionales.
 
 ---

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GymFlow HIIT Timer</title>
+    <title>GymFlow Pro</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
@@ -12,10 +12,16 @@
 </head>
 <body>
     <div id="app">
+        <!-- Navegación Superior -->
+        <nav id="main-nav">
+            <button id="nav-setup" class="active">ENTRENAR</button>
+            <button id="nav-history">HISTORIAL</button>
+        </nav>
+
         <!-- Pantalla de Configuración -->
         <section id="setup-screen" class="screen">
             <header>
-                <h1>GymFlow</h1>
+                <h1>GymFlow<span>PRO</span></h1>
                 <p>Configura tu entrenamiento</p>
             </header>
             
@@ -57,8 +63,16 @@
         <!-- Pantalla del Temporizador -->
         <section id="timer-screen" class="screen hidden">
             <div id="muscle-tag">GENERAL</div>
-            <div id="status-label">PREPARACIÓN</div>
-            <div id="countdown-display">10</div>
+            <div id="timer-container">
+                <svg id="progress-ring" viewBox="0 0 100 100">
+                    <circle id="progress-bg" cx="50" cy="50" r="45"></circle>
+                    <circle id="progress-bar" cx="50" cy="50" r="45"></circle>
+                </svg>
+                <div id="timer-content">
+                    <div id="status-label">PREPARACIÓN</div>
+                    <div id="countdown-display">10</div>
+                </div>
+            </div>
             
             <div id="progress-info">
                 <div class="info-box">
@@ -77,8 +91,18 @@
             </div>
         </section>
 
+        <!-- Pantalla de Historial -->
+        <section id="history-screen" class="screen hidden">
+            <h1>Historial</h1>
+            <div id="history-list">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <button id="clear-history" class="control-btn secondary">BORRAR TODO</button>
+        </section>
+
         <!-- Pantalla de Resumen Final -->
         <section id="finish-screen" class="screen hidden">
+            <div class="finish-anim">🏆</div>
             <h1>¡TERMINADO!</h1>
             <div class="summary-card">
                 <div class="summary-item">
