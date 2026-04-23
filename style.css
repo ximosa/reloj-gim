@@ -98,7 +98,7 @@ header p {
     font-weight: bold;
 }
 
-.input-group input {
+.input-group input, .input-group select {
     background: transparent;
     border: none;
     color: white;
@@ -106,6 +106,16 @@ header p {
     font-weight: bold;
     outline: none;
     width: 100%;
+    cursor: pointer;
+}
+
+.input-group select option {
+    background: var(--card-bg);
+    color: white;
+}
+
+.full-width {
+    grid-column: span 2;
 }
 
 .main-btn {
@@ -127,6 +137,17 @@ header p {
 }
 
 /* Temporizador */
+#muscle-tag {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 5px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 #status-label {
     font-size: 1.5rem;
     font-weight: 900;

@@ -36,13 +36,27 @@
                     <label for="user-weight">Peso (kg)</label>
                     <input type="number" id="user-weight" value="70" min="30">
                 </div>
+                <div class="input-group full-width">
+                    <label for="muscle-group">Grupo Muscular</label>
+                    <select id="muscle-group">
+                        <option value="General">General / Full Body</option>
+                        <option value="Pecho">Pecho</option>
+                        <option value="Espalda">Espalda</option>
+                        <option value="Hombros">Hombros</option>
+                        <option value="Bíceps">Bíceps</option>
+                        <option value="Tríceps">Tríceps</option>
+                        <option value="Piernas">Piernas</option>
+                        <option value="Abdominales">Abdominales</option>
+                    </select>
+                </div>
             </div>
 
-            <button id="start-btn" class="main-btn">INICIAR HIIT</button>
+            <button id="start-btn" class="main-btn">INICIAR ENTRENAMIENTO</button>
         </section>
 
         <!-- Pantalla del Temporizador -->
         <section id="timer-screen" class="screen hidden">
+            <div id="muscle-tag">GENERAL</div>
             <div id="status-label">PREPARACIÓN</div>
             <div id="countdown-display">10</div>
             
@@ -67,6 +81,10 @@
         <section id="finish-screen" class="screen hidden">
             <h1>¡TERMINADO!</h1>
             <div class="summary-card">
+                <div class="summary-item">
+                    <span class="label">Grupo Muscular</span>
+                    <span id="final-muscle">General</span>
+                </div>
                 <div class="summary-item">
                     <span class="label">Calorías Totales</span>
                     <span id="final-calories">0</span>

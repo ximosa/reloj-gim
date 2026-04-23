@@ -8,6 +8,7 @@ let totalRounds = 0;
 let workTime = 0;
 let restTime = 0;
 let userWeight = 70;
+let muscleGroup = 'General';
 let caloriesBurned = 0;
 let isPaused = false;
 let wakeLock = null;
@@ -29,6 +30,8 @@ const displays = {
     round: document.getElementById('current-round'),
     totalRounds: document.getElementById('total-rounds'),
     calories: document.getElementById('calories-display'),
+    muscleTag: document.getElementById('muscle-tag'),
+    finalMuscle: document.getElementById('final-muscle'),
     finalCalories: document.getElementById('final-calories'),
     finalTime: document.getElementById('final-time')
 };
@@ -53,13 +56,15 @@ function startWorkout() {
     restTime = parseInt(document.getElementById('rest-time').value);
     totalRounds = parseInt(document.getElementById('rounds').value);
     userWeight = parseInt(document.getElementById('user-weight').value);
+    muscleGroup = document.getElementById('muscle-group').value;
 
     saveSettings();
-    initSensory(); // Inicializar audio en la primera interacción
+    initSensory(); 
     requestWakeLock();
 
     currentRound = 1;
     caloriesBurned = 0;
+    displays.muscleTag.innerText = muscleGroup;
     switchScreen('timer');
     startState(STATES.PREP, 10);
 }
@@ -115,6 +120,7 @@ function finishWorkout() {
     currentState = STATES.FINISHED;
     releaseWakeLock();
     
+    displays.finalMuscle.innerText = muscleGroup;
     displays.finalCalories.innerText = Math.round(caloriesBurned);
     displays.finalTime.innerText = formatTime(totalRounds * (workTime + restTime));
     switchScreen('finish');
@@ -245,7 +251,8 @@ function saveSettings() {
         work: workTime,
         rest: restTime,
         rounds: totalRounds,
-        weight: userWeight
+        weight: userWeight,
+        muscle: muscleGroup
     };
     localStorage.setItem('gymTimerSettings', JSON.stringify(settings));
 }
@@ -258,5 +265,8 @@ function loadSettings() {
         document.getElementById('rest-time').value = settings.rest;
         document.getElementById('rounds').value = settings.rounds;
         document.getElementById('user-weight').value = settings.weight;
+        if (settings.muscle) {
+            document.getElementById('muscle-group').value = settings.muscle;
+        }
     }
 }
