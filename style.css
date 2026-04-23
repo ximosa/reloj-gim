@@ -1,0 +1,225 @@
+:root {
+    --bg-color: #0a0a0a;
+    --card-bg: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --color-work: #00ff88;
+    --color-rest: #ff4d4d;
+    --color-prep: #ffcc00;
+    --color-accent: #3399ff;
+    --font-huge: clamp(8rem, 30vw, 15rem);
+    --font-large: 2.5rem;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    overflow: hidden; /* Evitar scroll durante el entrenamiento */
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#app {
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.hidden {
+    display: none !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Configuración */
+header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    text-align: center;
+    background: linear-gradient(45deg, var(--color-work), var(--color-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+header p {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+}
+
+.input-group {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 1px solid #333;
+}
+
+.input-group label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.input-group input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    outline: none;
+    width: 100%;
+}
+
+.main-btn {
+    width: 100%;
+    padding: 25px;
+    border-radius: 20px;
+    border: none;
+    background: var(--color-work);
+    color: black;
+    font-size: 1.5rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.2s;
+    box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2);
+}
+
+.main-btn:active {
+    transform: scale(0.98);
+}
+
+/* Temporizador */
+#status-label {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    transition: color 0.3s;
+}
+
+#countdown-display {
+    font-size: var(--font-huge);
+    font-weight: 900;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    transition: transform 0.2s;
+}
+
+#progress-info {
+    display: flex;
+    gap: 40px;
+    width: 100%;
+    justify-content: center;
+}
+
+.info-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.info-box .label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.info-box span:not(.label) {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.controls {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+}
+
+.control-btn {
+    flex: 1;
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid white;
+    background: transparent;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.control-btn.secondary {
+    border-color: #555;
+    color: #888;
+}
+
+/* Colores de Estado */
+.state-work { color: var(--color-work); }
+.state-rest { color: var(--color-rest); }
+.state-prep { color: var(--color-prep); }
+
+body.bg-work { background-color: #061f13; }
+body.bg-rest { background-color: #1f0606; }
+body.bg-prep { background-color: #1f1a06; }
+
+/* Resumen */
+.summary-card {
+    background: var(--card-bg);
+    width: 100%;
+    padding: 30px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+/* Responsive */
+@media (max-height: 600px) {
+    #countdown-display { font-size: 20vh; }
+    .inputs-grid { gap: 10px; }
+    .input-group { padding: 10px; }
+}

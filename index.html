@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GymFlow HIIT Timer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+    <div id="app">
+        <!-- Pantalla de Configuración -->
+        <section id="setup-screen" class="screen">
+            <header>
+                <h1>GymFlow</h1>
+                <p>Configura tu entrenamiento</p>
+            </header>
+            
+            <div class="inputs-grid">
+                <div class="input-group">
+                    <label for="work-time">Trabajo (s)</label>
+                    <input type="number" id="work-time" value="40" min="5" step="5">
+                </div>
+                <div class="input-group">
+                    <label for="rest-time">Descanso (s)</label>
+                    <input type="number" id="rest-time" value="20" min="5" step="5">
+                </div>
+                <div class="input-group">
+                    <label for="rounds">Series</label>
+                    <input type="number" id="rounds" value="8" min="1">
+                </div>
+                <div class="input-group">
+                    <label for="user-weight">Peso (kg)</label>
+                    <input type="number" id="user-weight" value="70" min="30">
+                </div>
+            </div>
+
+            <button id="start-btn" class="main-btn">INICIAR HIIT</button>
+        </section>
+
+        <!-- Pantalla del Temporizador -->
+        <section id="timer-screen" class="screen hidden">
+            <div id="status-label">PREPARACIÓN</div>
+            <div id="countdown-display">10</div>
+            
+            <div id="progress-info">
+                <div class="info-box">
+                    <span class="label">SERIE</span>
+                    <span id="current-round">1</span>/<span id="total-rounds">8</span>
+                </div>
+                <div class="info-box">
+                    <span class="label">KCAL</span>
+                    <span id="calories-display">0</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="pause-btn" class="control-btn">PAUSA</button>
+                <button id="stop-btn" class="control-btn secondary">PARAR</button>
+            </div>
+        </section>
+
+        <!-- Pantalla de Resumen Final -->
+        <section id="finish-screen" class="screen hidden">
+            <h1>¡TERMINADO!</h1>
+            <div class="summary-card">
+                <div class="summary-item">
+                    <span class="label">Calorías Totales</span>
+                    <span id="final-calories">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Tiempo Total</span>
+                    <span id="final-time">00:00</span>
+                </div>
+            </div>
+            <button id="reset-btn" class="main-btn">NUEVA RUTINA</button>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js');
+            });
+        }
+    </script>
+</body>
+</html>
